@@ -219,4 +219,10 @@ Rakt-Setu/
 ## Screenshots
 
 <img width="1425" height="798" alt="Screenshot 2026-04-11 at 11 15 34 AM" src="https://github.com/user-attachments/assets/5fc809b5-8ad6-48c3-adc2-051e1477e9a2" />
+<img width="1468" height="867" alt="Screenshot 2026-04-14 at 11 41 01 PM" src="https://github.com/user-attachments/assets/a4501e4f-d265-4bee-b563-4279e57288da" />
+<img width="1469" height="866" alt="Screenshot 2026-04-14 at 11 40 05 PM" src="https://github.com/user-attachments/assets/5013228a-47d8-48f9-9590-6aa8b10457a3" />
+<img width="1464" height="868" alt="Screenshot 2026-04-14 at 11 39 25 PM" src="https://github.com/user-attachments/assets/55ff9feb-af70-4720-af9e-ed914c91308f" />
+<img width="1470" height="866" alt="Screenshot 2026-04-14 at 11 38 02 PM" src="https://github.com/user-attachments/assets/866ef72c-7a38-4bb1-8019-fac1826466cc" />
+<img width="1456" height="867" alt="Screenshot 2026-04-14 at 11 37 36 PM" src="https://github.com/user-attachments/assets/8b80efda-fc9e-484d-8b03-0f01e545ecd3" />
+
 
