@@ -23,6 +23,20 @@ function connectDB() {
   const db = getDb();
 
   db.exec(`
+    CREATE TABLE IF NOT EXISTS requests (
+      _id TEXT PRIMARY KEY,
+      bloodGroup TEXT NOT NULL,
+      requestedBy TEXT NOT NULL,
+      acceptedBy TEXT,
+      status TEXT NOT NULL DEFAULT 'pending',
+      location_lat REAL,
+      location_lng REAL,
+      address TEXT,
+      notes TEXT,
+      createdAt TEXT NOT NULL,
+      updatedAt TEXT NOT NULL
+    );
+
     CREATE TABLE IF NOT EXISTS users (
       _id TEXT PRIMARY KEY,
       role TEXT NOT NULL CHECK(role IN ('admin','organisation','donar','hospital')),

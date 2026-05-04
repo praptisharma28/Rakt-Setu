@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Header from "../../components/shared/Layout/Header";
 import API from "../../services/API";
+import { Link } from "react-router-dom";
 
 const AIDashboard = () => {
   const [predictions, setPredictions] = useState(null);
@@ -10,6 +11,7 @@ const AIDashboard = () => {
   const [matchBloodType, setMatchBloodType] = useState("O+");
   const [forecastDays, setForecastDays] = useState(7);
   const [loading, setLoading] = useState({});
+  const [liveStats, setLiveStats] = useState(null);
 
   const bloodGroups = ["O+", "O-", "AB+", "AB-", "A+", "A-", "B+", "B-"];
 
@@ -58,8 +60,16 @@ const AIDashboard = () => {
     setLoading((p) => ({ ...p, match: false }));
   };
 
+  const fetchLiveStats = async () => {
+    try {
+      const { data } = await API.get('/analytics/stats');
+      if (data?.success) setLiveStats(data.stats);
+    } catch (err) { console.error(err); }
+  };
+
   useEffect(() => {
     fetchOptimization();
+    fetchLiveStats();
     // eslint-disable-next-line
   }, []);
 
@@ -82,24 +92,49 @@ const AIDashboard = () => {
       <Header />
       <div className="container-fluid mt-3 px-4">
         {/* Title */}
-        <div className="d-flex align-items-center mb-4">
+        <div className="d-flex align-items-center mb-3">
           <h2 className="mb-0">
-            <i
-              className="fa-solid fa-brain"
-              style={{ color: "#764ba2", marginRight: "10px" }}
-            ></i>
-            AI Intelligence Dashboard
+            <i className="fa-solid fa-chart-line" style={{ color: "#764ba2", marginRight: "10px" }}></i>
+            Analytics &amp; Intelligence Dashboard
           </h2>
-          <span
-            className="badge ms-3"
-            style={{
-              background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-              fontSize: "12px",
-              padding: "6px 12px",
-            }}
-          >
-            AI Powered
+          <span className="badge ms-3" style={{ background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)", fontSize: "12px", padding: "6px 12px" }}>
+            Statistical AI
           </span>
+        </div>
+
+        {/* Live DB Stats Row */}
+        {liveStats && (
+          <div className="row g-2 mb-4">
+            {[
+              { label: 'Donors', value: liveStats.totalDonors, icon: 'fa-user-plus', color: '#1a73e8', bg: '#e3f2fd' },
+              { label: 'Hospitals', value: liveStats.totalHospitals, icon: 'fa-hospital', color: '#388e3c', bg: '#e8f5e9' },
+              { label: 'Organisations', value: liveStats.totalOrgs, icon: 'fa-building-ngo', color: '#f57c00', bg: '#fff3e0' },
+              { label: 'Blood Available', value: `${liveStats.availableBlood} ml`, icon: 'fa-droplet', color: '#d32f2f', bg: '#ffebee' },
+              { label: 'Pending Requests', value: liveStats.pendingRequests, icon: 'fa-clock', color: '#7b1fa2', bg: '#f3e5f5' },
+              { label: 'Completed', value: liveStats.completedRequests, icon: 'fa-circle-check', color: '#00796b', bg: '#e0f2f1' },
+            ].map(s => (
+              <div key={s.label} className="col-6 col-md-2">
+                <div className="p-2 rounded text-center h-100" style={{ background: s.bg }}>
+                  <i className={`fa-solid ${s.icon} mb-1`} style={{ color: s.color, fontSize: 18 }}></i>
+                  <div style={{ fontSize: 22, fontWeight: 800, color: s.color }}>{s.value}</div>
+                  <div style={{ fontSize: 11, color: '#555' }}>{s.label}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Quick links */}
+        <div className="d-flex gap-2 mb-4">
+          <Link to="/blood-map" className="btn btn-sm btn-outline-primary">
+            <i className="fa-solid fa-map-location-dot me-1"></i>Live Blood Map
+          </Link>
+          <Link to="/request-blood" className="btn btn-sm btn-outline-danger">
+            <i className="fa-solid fa-droplet-slash me-1"></i>Request Blood
+          </Link>
+          <Link to="/analytics" className="btn btn-sm btn-outline-secondary">
+            <i className="fa-solid fa-chart-bar me-1"></i>Inventory Analytics
+          </Link>
         </div>
 
         {/* ========== DEMAND PREDICTION ========== */}
@@ -640,8 +675,8 @@ const AIDashboard = () => {
           }}
         >
           <i className="fa-solid fa-shield-halved me-1"></i>
-          AI predictions are based on historical data analysis using Moving Average & Trend Detection algorithms.
-          Click the <strong>chat button</strong> (bottom-right) for the AI Blood Donation Assistant.
+          Predictions use <strong>Moving Average &amp; Trend Analysis</strong> on real DB data. Donor matching uses a <strong>multi-factor scoring algorithm</strong> (proximity · blood compatibility · availability · history). All stats above reflect live database values.
+          Use the <strong>chat button</strong> (bottom-right) for the Blood Donation Assistant.
         </div>
       </div>
     </>

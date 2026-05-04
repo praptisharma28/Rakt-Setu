@@ -18,6 +18,8 @@ import OrgList from './pages/admin/OrgList';
 import AdminHome from './pages/admin/AdminHome';
 import AIDashboard from './pages/Dashboard/AIDashboard';
 import Chatbot from './components/Chatbot/Chatbot';
+import BloodMap from './pages/BloodMap';
+import RequestBlood from './pages/RequestBlood';
 
 function App() {
   return (
@@ -96,6 +98,16 @@ function App() {
         <Route path="/ai-dashboard" element={
             <ProtectedRoute>
               <AIDashboard/>
+            </ProtectedRoute>
+        } />
+        <Route path="/blood-map" element={
+            <ProtectedRoute>
+              <BloodMap/>
+            </ProtectedRoute>
+        } />
+        <Route path="/request-blood" element={
+            <ProtectedRoute>
+              <RequestBlood/>
             </ProtectedRoute>
         } />
         <Route path="/login" element={

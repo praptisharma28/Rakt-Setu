@@ -99,4 +99,19 @@ const currentUserController = async (req, res) => {
   }
 };
 
-module.exports = {registerController,loginController,currentUserController};
+const updateLocationController = async (req, res) => {
+  try {
+    const { lat, lng } = req.body;
+    const userId = req.body.userId;
+    if (!lat || !lng) return res.status(400).json({ success: false, message: 'lat and lng required' });
+    const { getDb } = require('../config/db');
+    const db = getDb();
+    db.prepare('UPDATE users SET location_lat = ?, location_lng = ?, updatedAt = ? WHERE _id = ?')
+      .run(lat, lng, new Date().toISOString(), userId);
+    return res.status(200).json({ success: true, message: 'Location updated' });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: 'Error updating location', error: error.message });
+  }
+};
+
+module.exports = {registerController, loginController, currentUserController, updateLocationController};

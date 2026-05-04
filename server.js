@@ -49,6 +49,9 @@ app.use("/api/v1/admin", require("./routes/adminRoutes.js"));
 //AI routes
 app.use('/api/v1/ai', require('./routes/aiRoutes.js'));
 
+//Blood request routes
+app.use('/api/v1/requests', require('./routes/requestRoutes.js'));
+
 //error handling middlewares (must be after routes)
 app.use(notFound);
 app.use(errorHandler);
