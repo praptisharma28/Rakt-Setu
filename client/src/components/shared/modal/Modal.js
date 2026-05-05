@@ -104,8 +104,13 @@ const Modal = () => {
                 <option value={"B+"}>B+</option>
                 <option value={"B-"}>B-</option>
               </select>
+              <p className="text-muted mb-1" style={{fontSize:'12px'}}>
+                {inventoryType === 'in'
+                  ? '👤 Enter the registered donor\'s email (e.g. rahul@raktsetu.com)'
+                  : '🏥 Enter the registered hospital\'s email (e.g. aiims@raktsetu.com)'}
+              </p>
               <InputType
-                labelText={"Email"}
+                labelText={inventoryType === 'in' ? "Donor Email" : "Hospital Email"}
                 labelForm={"donarEmail"}
                 inputType={"email"}
                 value={email}

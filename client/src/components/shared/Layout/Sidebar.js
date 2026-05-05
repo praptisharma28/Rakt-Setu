@@ -67,7 +67,28 @@ const Sidebar = () => {
             </>
           )}
 
-          {(user?.role === "donar" || user?.role === "hospital") && (
+          {user?.role === "donar" && (
+            <>
+              <div
+                className={`menu-item ${
+                  location.pathname === "/donar" && "active"
+                }`}
+              >
+                <i className="fa-solid fa-house-medical"></i>
+                <Link to="/donar">Dashboard</Link>
+              </div>
+              <div
+                className={`menu-item ${
+                  location.pathname === "/organisation" && "active"
+                }`}
+              >
+                <i className="fa-solid fa-building-ngo"></i>
+                <Link to="/organisation">Organisations</Link>
+              </div>
+            </>
+          )}
+
+          {user?.role === "hospital" && (
             <>
               <div
                 className={`menu-item ${
@@ -78,6 +99,28 @@ const Sidebar = () => {
                 <Link to="/organisation">Organisations</Link>
               </div>
             </>
+          )}
+
+          {/* Blood Map - visible to all roles */}
+          <div className={`menu-item ${location.pathname === "/blood-map" && "active"}`}>
+            <i className="fa-solid fa-map-location-dot"></i>
+            <Link to="/blood-map">Blood Map</Link>
+          </div>
+
+          {/* Request Blood - visible to organisation and hospital only */}
+          {(user?.role === "organisation" || user?.role === "hospital") && (
+            <div className={`menu-item ${location.pathname === "/request-blood" && "active"}`}>
+              <i className="fa-solid fa-droplet-slash"></i>
+              <Link to="/request-blood">Request Blood</Link>
+            </div>
+          )}
+
+          {/* Analytics */}
+          {user?.role !== "admin" && (
+            <div className={`menu-item ${location.pathname === "/analytics" && "active"}`}>
+              <i className="fa-solid fa-chart-bar"></i>
+              <Link to="/analytics">Analytics</Link>
+            </div>
           )}
 
           {/* AI Dashboard - visible to all roles */}

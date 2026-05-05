@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import Header from "../../components/shared/Layout/Header";
+import Layout from "../../components/shared/Layout/Layout";
 import API from "../../services/API";
 import { Link } from "react-router-dom";
 
@@ -88,8 +88,7 @@ const AIDashboard = () => {
   };
 
   return (
-    <>
-      <Header />
+    <Layout>
       <div className="container-fluid mt-3 px-4">
         {/* Title */}
         <div className="d-flex align-items-center mb-3">
@@ -679,7 +678,7 @@ const AIDashboard = () => {
           Use the <strong>chat button</strong> (bottom-right) for the Blood Donation Assistant.
         </div>
       </div>
-    </>
+    </Layout>
   );
 };
 

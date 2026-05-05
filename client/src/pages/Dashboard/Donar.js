@@ -1,14 +1,69 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
+import { useSelector } from 'react-redux';
 import Layout from '../../components/shared/Layout/Layout';
 import API from '../../services/API';
 import moment from 'moment';
 import toast from 'react-hot-toast';
 import { ProgressBar } from 'react-loader-spinner';
 
+// ─────────────────────────────────────────────
+// Organisation view — list of donors who donated through this org
+// ─────────────────────────────────────────────
+const OrgDonorList = () => {
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    API.get('/inventory/get-donars')
+      .then(({ data }) => { if (data?.success) setData(data.donars); })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return (
+    <div className="d-flex justify-content-center mt-5">
+      <ProgressBar visible height="120" width="120" color="#d32f2f" ariaLabel="loading" />
+    </div>
+  );
+
+  return (
+    <div className="container mt-4">
+      <h5 className="mb-3">
+        <i className="fa-solid fa-hand-holding-medical me-2 text-danger"></i>
+        Donors who donated through your organisation
+      </h5>
+      <table className="table table-bordered">
+        <thead className="table-active">
+          <tr>
+            <th>Name</th><th>Email</th><th>Phone</th><th>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.length === 0 ? (
+            <tr><td colSpan={4} className="text-center text-muted py-3">
+              No donors yet — add inventory (IN) with a donor's email to see them here
+            </td></tr>
+          ) : data.map(record => (
+            <tr key={record._id}>
+              <td>{record.name || `${record.organisationName} (ORG)`}</td>
+              <td>{record.email}</td>
+              <td>{record.phone}</td>
+              <td>{moment(record.createdAt).format('DD/MM/YYYY hh:mm A')}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────
+// Donor view — blood requests + set location
+// ─────────────────────────────────────────────
 const statusBadge = (status) => {
   const map = {
-    pending: { bg: '#fff3e0', color: '#e65100', label: '⏳ Pending' },
-    accepted: { bg: '#e8f5e9', color: '#2e7d32', label: '✅ Accepted' },
+    pending:   { bg: '#fff3e0', color: '#e65100', label: '⏳ Pending' },
+    accepted:  { bg: '#e8f5e9', color: '#2e7d32', label: '✅ Accepted' },
     completed: { bg: '#e3f2fd', color: '#1565c0', label: '🎉 Completed' },
     cancelled: { bg: '#f5f5f5', color: '#757575', label: '✖ Cancelled' },
   };
@@ -20,7 +75,7 @@ const statusBadge = (status) => {
   );
 };
 
-const Donar = () => {
+const DonorView = () => {
   const [donationHistory, setDonationHistory] = useState([]);
   const [availableRequests, setAvailableRequests] = useState([]);
   const [myRequests, setMyRequests] = useState([]);
@@ -28,24 +83,16 @@ const Donar = () => {
   const [geoLoading, setGeoLoading] = useState(false);
   const [accepting, setAccepting] = useState(null);
   const [revealedContacts, setRevealedContacts] = useState({});
-  const prevRequestsRef = useRef([]);
-
-  const getDonationHistory = async () => {
-    try {
-      const { data } = await API.get('/inventory/get-donars');
-      if (data?.success) setDonationHistory(data.donars);
-    } catch (err) { console.error(err); }
-  };
+  const prevCountRef = useRef(0);
 
   const fetchAvailableRequests = useCallback(async () => {
     try {
       const { data } = await API.get('/requests/available');
       if (data?.success) {
-        const prev = prevRequestsRef.current;
-        if (prev.length > 0 && data.requests.length > prev.length) {
-          toast('🆕 New blood request in your area!', { icon: '🔔', duration: 5000 });
+        if (prevCountRef.current > 0 && data.requests.length > prevCountRef.current) {
+          toast('🔔 New blood request in your area!', { duration: 5000 });
         }
-        prevRequestsRef.current = data.requests;
+        prevCountRef.current = data.requests.length;
         setAvailableRequests(data.requests);
       }
     } catch (err) { console.error(err); }
@@ -54,23 +101,21 @@ const Donar = () => {
   const fetchMyAccepted = useCallback(async () => {
     try {
       const { data } = await API.get('/requests/mine');
-      if (data?.success) {
-        const accepted = data.requests.filter(r => r.status === 'accepted' || r.status === 'completed');
-        setMyRequests(accepted);
-      }
+      if (data?.success) setMyRequests(data.requests.filter(r => r.acceptedBy && r.status !== 'cancelled'));
     } catch (err) { console.error(err); }
   }, []);
 
   useEffect(() => {
     const init = async () => {
-      await Promise.all([getDonationHistory(), fetchAvailableRequests(), fetchMyAccepted()]);
+      try {
+        const { data } = await API.get('/inventory/get-donars');
+        if (data?.success) setDonationHistory(data.donars);
+      } catch (err) { console.error(err); }
+      await Promise.all([fetchAvailableRequests(), fetchMyAccepted()]);
       setLoading(false);
     };
     init();
-    const interval = setInterval(() => {
-      fetchAvailableRequests();
-      fetchMyAccepted();
-    }, 8000);
+    const interval = setInterval(() => { fetchAvailableRequests(); fetchMyAccepted(); }, 8000);
     return () => clearInterval(interval);
   }, [fetchAvailableRequests, fetchMyAccepted]);
 
@@ -81,17 +126,16 @@ const Donar = () => {
       async (pos) => {
         try {
           const { data } = await API.patch('/auth/update-location', {
-            lat: pos.coords.latitude,
-            lng: pos.coords.longitude
+            lat: pos.coords.latitude, lng: pos.coords.longitude
           });
           if (data?.success) toast.success('Location updated! You now appear on the Blood Map.');
-          else toast.error('Could not update location');
+          else toast.error(data?.message || 'Could not update location');
         } catch (err) {
-          toast.error('Error updating location');
+          toast.error(err?.response?.data?.message || 'Error updating location');
         }
         setGeoLoading(false);
       },
-      () => { toast.error('Location access denied'); setGeoLoading(false); }
+      () => { toast.error('Location access denied. Please allow location in browser settings.'); setGeoLoading(false); }
     );
   };
 
@@ -102,8 +146,8 @@ const Donar = () => {
       if (data?.success) {
         const rc = data.requesterContact;
         const name = rc.name || rc.hospitalName || rc.organisationName || '';
-        toast.success(`Request accepted! Contact: ${name} — 📞 ${rc.phone}`, { duration: 8000 });
-        setRevealedContacts(prev => ({ ...prev, [reqId]: { ...data.requesterContact, donorInfo: data.donorContact } }));
+        toast.success(`Accepted! Contact: ${name} — 📞 ${rc.phone}`, { duration: 8000 });
+        setRevealedContacts(prev => ({ ...prev, [reqId]: rc }));
         fetchAvailableRequests();
         fetchMyAccepted();
       } else {
@@ -122,155 +166,155 @@ const Donar = () => {
     } catch (err) { toast.error('Error'); }
   };
 
-  if (loading) {
-    return (
-      <Layout>
-        <div className="d-flex justify-content-center align-items-center" style={{ height: '60vh' }}>
-          <ProgressBar visible height="120" width="120" color="#d32f2f" ariaLabel="loading" />
-        </div>
-      </Layout>
-    );
-  }
+  if (loading) return (
+    <div className="d-flex justify-content-center mt-5">
+      <ProgressBar visible height="120" width="120" color="#d32f2f" ariaLabel="loading" />
+    </div>
+  );
 
   return (
-    <Layout>
-      <div className="container mt-3">
+    <div className="container mt-3">
+      {/* Location CTA */}
+      <div className="alert d-flex align-items-center justify-content-between mb-3"
+        style={{ background: '#e3f2fd', border: '1px solid #90caf9', borderRadius: 10 }}>
+        <div>
+          <i className="fa-solid fa-location-dot text-primary me-2"></i>
+          <strong>Appear on the Blood Map</strong> — set your location so seekers can find you
+        </div>
+        <button className="btn btn-primary btn-sm px-3" onClick={setMyLocation} disabled={geoLoading}>
+          {geoLoading
+            ? <span className="spinner-border spinner-border-sm me-1"></span>
+            : <i className="fa-solid fa-crosshairs me-1"></i>}
+          {geoLoading ? 'Detecting...' : 'Set My Location'}
+        </button>
+      </div>
 
-        {/* Location CTA */}
-        <div className="alert d-flex align-items-center justify-content-between" style={{ background: '#e3f2fd', border: '1px solid #90caf9', borderRadius: 10 }}>
-          <div>
-            <i className="fa-solid fa-location-dot text-primary me-2"></i>
-            <strong>Appear on the Blood Map</strong> — set your location so seekers can find you
-          </div>
-          <button className="btn btn-primary btn-sm px-3" onClick={setMyLocation} disabled={geoLoading}>
-            {geoLoading ? <span className="spinner-border spinner-border-sm me-1"></span> : <i className="fa-solid fa-crosshairs me-1"></i>}
-            {geoLoading ? 'Detecting...' : 'Set My Location'}
-          </button>
+      {/* Available requests */}
+      <div className="mb-4">
+        <div className="d-flex align-items-center justify-content-between mb-3">
+          <h5 className="mb-0">
+            <i className="fa-solid fa-droplet text-danger me-2"></i>
+            Blood Requests Near You
+            <span className="badge bg-danger ms-2">{availableRequests.length}</span>
+          </h5>
+          <span className="text-muted" style={{ fontSize: 12 }}>
+            <i className="fa-solid fa-rotate-right me-1"></i>Live — updates every 8s
+          </span>
         </div>
 
-        {/* Active blood requests in area */}
-        <div className="mb-4">
-          <div className="d-flex align-items-center justify-content-between mb-3">
-            <h5 className="mb-0">
-              <i className="fa-solid fa-droplet text-danger me-2"></i>
-              Blood Requests Near You
-              <span className="badge bg-danger ms-2">{availableRequests.length}</span>
-            </h5>
-            <span className="text-muted" style={{ fontSize: 12 }}>
-              <i className="fa-solid fa-rotate-right me-1"></i>Live — updates every 8s
-            </span>
+        {availableRequests.length === 0 ? (
+          <div className="text-center py-4 text-muted" style={{ background: '#fafafa', borderRadius: 10 }}>
+            <i className="fa-solid fa-circle-check mb-2" style={{ fontSize: 32, color: '#ccc' }}></i>
+            <p className="mb-0">No pending requests right now</p>
           </div>
-
-          {availableRequests.length === 0 ? (
-            <div className="text-center py-4 text-muted" style={{ background: '#fafafa', borderRadius: 10 }}>
-              <i className="fa-solid fa-circle-check mb-2" style={{ fontSize: 32, color: '#ccc' }}></i>
-              <p className="mb-0">No pending requests right now</p>
-            </div>
-          ) : (
-            <div className="row g-3">
-              {availableRequests.map(req => {
-                const revealed = revealedContacts[req._id];
-                return (
-                  <div key={req._id} className="col-md-6">
-                    <div className="card h-100" style={{ borderRadius: 10, border: '1px solid #ffcdd2', background: '#fff8f8' }}>
-                      <div className="card-body">
-                        <div className="d-flex justify-content-between align-items-center mb-2">
-                          <span style={{ fontSize: 32, fontWeight: 800, color: '#d32f2f' }}>{req.bloodGroup}</span>
-                          {statusBadge(req.status)}
-                        </div>
-                        <div style={{ fontSize: 13, color: '#555' }}>
-                          <div><b>{req.requesterName}</b> ({req.requesterRole})</div>
-                          {req.address && <div><i className="fa-solid fa-location-dot me-1 text-muted"></i>{req.address}</div>}
-                          {req.notes && <div className="text-muted mt-1">{req.notes}</div>}
-                          <div className="text-muted mt-1">{moment(req.createdAt).fromNow()}</div>
-                        </div>
-
-                        {revealed ? (
-                          <div className="mt-2 p-2 rounded" style={{ background: '#e8f5e9', border: '1px solid #a5d6a7' }}>
-                            <strong style={{ color: '#2e7d32', fontSize: 13 }}>✅ You accepted — Contact Info:</strong>
-                            <div style={{ fontSize: 13 }} className="mt-1">
-                              <b>{revealed.name || revealed.hospitalName || ''}</b><br />
-                              📞 <a href={`tel:${revealed.phone}`}>{revealed.phone}</a><br />
-                              ✉️ {revealed.email}
-                            </div>
-                          </div>
-                        ) : (
-                          <button
-                            className="btn btn-danger btn-sm mt-2 px-3"
-                            onClick={() => acceptRequest(req._id)}
-                            disabled={accepting === req._id}
-                          >
-                            {accepting === req._id ? <span className="spinner-border spinner-border-sm me-1"></span> : null}
-                            Accept & Reveal Contact
-                          </button>
-                        )}
+        ) : (
+          <div className="row g-3">
+            {availableRequests.map(req => {
+              const revealed = revealedContacts[req._id];
+              return (
+                <div key={req._id} className="col-md-6">
+                  <div className="card h-100" style={{ borderRadius: 10, border: '1px solid #ffcdd2', background: '#fff8f8' }}>
+                    <div className="card-body">
+                      <div className="d-flex justify-content-between align-items-center mb-2">
+                        <span style={{ fontSize: 32, fontWeight: 800, color: '#d32f2f' }}>{req.bloodGroup}</span>
+                        {statusBadge(req.status)}
                       </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
+                      <div style={{ fontSize: 13, color: '#555' }}>
+                        <div><b>{req.requesterName}</b> ({req.requesterRole})</div>
+                        {req.address && <div><i className="fa-solid fa-location-dot me-1 text-muted"></i>{req.address}</div>}
+                        {req.notes && <div className="text-muted mt-1">{req.notes}</div>}
+                        <div className="text-muted mt-1">{moment(req.createdAt).fromNow()}</div>
+                      </div>
 
-        {/* My accepted/completed requests */}
-        {myRequests.length > 0 && (
-          <div className="mb-4">
-            <h5 className="mb-3">
-              <i className="fa-solid fa-handshake me-2 text-success"></i>
-              My Accepted Donations
-            </h5>
-            {myRequests.map(r => (
-              <div key={r._id} className="card mb-2" style={{ borderRadius: 10, border: '1px solid #c8e6c9' }}>
-                <div className="card-body py-2">
-                  <div className="d-flex justify-content-between align-items-center">
-                    <div>
-                      <span style={{ fontSize: 22, fontWeight: 700, color: '#d32f2f' }}>{r.bloodGroup}</span>
-                      <span className="ms-2">{statusBadge(r.status)}</span>
-                      <span className="ms-2 text-muted" style={{ fontSize: 12 }}>{r.requesterName} — {r.requesterPhone}</span>
+                      {revealed ? (
+                        <div className="mt-2 p-2 rounded" style={{ background: '#e8f5e9', border: '1px solid #a5d6a7' }}>
+                          <strong style={{ color: '#2e7d32', fontSize: 13 }}>✅ Accepted — Contact Info:</strong>
+                          <div style={{ fontSize: 13 }} className="mt-1">
+                            <b>{revealed.name || revealed.hospitalName || ''}</b><br />
+                            📞 <a href={`tel:${revealed.phone}`}>{revealed.phone}</a><br />
+                            ✉️ {revealed.email}
+                          </div>
+                        </div>
+                      ) : (
+                        <button className="btn btn-danger btn-sm mt-2 px-3"
+                          onClick={() => acceptRequest(req._id)} disabled={accepting === req._id}>
+                          {accepting === req._id
+                            ? <span className="spinner-border spinner-border-sm me-1"></span>
+                            : null}
+                          Accept &amp; Reveal Contact
+                        </button>
+                      )}
                     </div>
-                    {r.status === 'accepted' && (
-                      <button className="btn btn-sm btn-success" onClick={() => markComplete(r._id)}>
-                        <i className="fa-solid fa-check me-1"></i>Done
-                      </button>
-                    )}
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
-
-        {/* Donation history */}
-        <h5 className="mb-3">
-          <i className="fa-solid fa-clock-rotate-left me-2 text-secondary"></i>
-          Donation History
-        </h5>
-        <div className="table-responsive">
-          <table className="table table-hover">
-            <thead className="table-light">
-              <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Phone</th>
-                <th>Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              {donationHistory.length === 0 ? (
-                <tr><td colSpan={4} className="text-center text-muted py-3">No donation history yet</td></tr>
-              ) : donationHistory.map(record => (
-                <tr key={record._id}>
-                  <td>{record.name || `${record.organisationName} (ORG)`}</td>
-                  <td>{record.email}</td>
-                  <td>{record.phone}</td>
-                  <td>{moment(record.createdAt).format('DD/MM/YYYY hh:mm A')}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
       </div>
+
+      {/* My accepted donations */}
+      {myRequests.length > 0 && (
+        <div className="mb-4">
+          <h5 className="mb-3">
+            <i className="fa-solid fa-handshake me-2 text-success"></i>My Accepted Donations
+          </h5>
+          {myRequests.map(r => (
+            <div key={r._id} className="card mb-2" style={{ borderRadius: 10, border: '1px solid #c8e6c9' }}>
+              <div className="card-body py-2">
+                <div className="d-flex justify-content-between align-items-center">
+                  <div>
+                    <span style={{ fontSize: 22, fontWeight: 700, color: '#d32f2f' }}>{r.bloodGroup}</span>
+                    <span className="ms-2">{statusBadge(r.status)}</span>
+                    <span className="ms-2 text-muted" style={{ fontSize: 12 }}>
+                      {r.requesterName} — {r.requesterPhone}
+                    </span>
+                  </div>
+                  {r.status === 'accepted' && (
+                    <button className="btn btn-sm btn-success" onClick={() => markComplete(r._id)}>
+                      <i className="fa-solid fa-check me-1"></i>Done
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Donation history */}
+      <h5 className="mb-3">
+        <i className="fa-solid fa-clock-rotate-left me-2 text-secondary"></i>Donation History
+      </h5>
+      <table className="table table-hover">
+        <thead className="table-light">
+          <tr><th>Name</th><th>Email</th><th>Phone</th><th>Date</th></tr>
+        </thead>
+        <tbody>
+          {donationHistory.length === 0 ? (
+            <tr><td colSpan={4} className="text-center text-muted py-3">No donation history yet</td></tr>
+          ) : donationHistory.map(record => (
+            <tr key={record._id}>
+              <td>{record.name || `${record.organisationName} (ORG)`}</td>
+              <td>{record.email}</td>
+              <td>{record.phone}</td>
+              <td>{moment(record.createdAt).format('DD/MM/YYYY hh:mm A')}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────
+// Main export — routes to the right view by role
+// ─────────────────────────────────────────────
+const Donar = () => {
+  const { user } = useSelector(state => state.auth);
+  return (
+    <Layout>
+      {user?.role === 'organisation' ? <OrgDonorList /> : <DonorView />}
     </Layout>
   );
 };

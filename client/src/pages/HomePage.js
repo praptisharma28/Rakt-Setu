@@ -30,6 +30,8 @@ const HomePage = () => {
   return (
     <Layout>
       {user?.role === 'admin' && navigate('/admin')}
+      {user?.role === 'donar' && navigate('/donar')}
+      {user?.role === 'hospital' && navigate('/hospital')}
       {loading ? (
         <div className="d-flex justify-content-center align-items-center">
           <ProgressBar

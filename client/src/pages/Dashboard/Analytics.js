@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import Header from "../../components/shared/Layout/Header";
+import Layout from "../../components/shared/Layout/Layout";
 import API from "./../../services/API";
 import moment from "moment";
 
@@ -41,8 +41,7 @@ const Analytics = () => {
   }, []);
 
   return (
-    <>
-      <Header />
+    <Layout>
       <div className="d-flex flex-row flex-wrap align-items-center justify-content-center">
         {data.map((record,i) => (
           <div className="card m-3 p-2" style={{ width: "18rem", borderRadius: '10px' ,backgroundColor:`${colors[i]}` }}>
@@ -86,7 +85,7 @@ const Analytics = () => {
               </tbody>
             </table>
       </div>
-    </>
+    </Layout>
   );
 };
 

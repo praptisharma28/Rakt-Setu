@@ -15,14 +15,17 @@ const ProtectedRoute = ({children}) => {
                 dispatch(getCurrentUser(data));
             }
         }catch(error){
-            localStorage.clear();
+            if(error?.response?.status === 401){
+                localStorage.clear();
+            }
             console.log(error?.response?.data?.message || error.message);
         }
     }
     
     useEffect(()=>{
         getUser();
-    })
+    // eslint-disable-next-line
+    }, [])
 
     if(localStorage.getItem('token')){
         return children

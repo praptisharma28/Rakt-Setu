@@ -17,7 +17,7 @@ const Form = ({ formType, submitBtn, formTitle }) => {
   return (
     <div>
       <form
-        style={{ width: "25rem" }}
+        style={{ width: "100%", maxWidth: "420px" }}
         onSubmit={(e) => {
           if (formType === "login")
             return handleLogin(e, email, password, role);
@@ -40,60 +40,37 @@ const Form = ({ formType, submitBtn, formTitle }) => {
           {formTitle}
         </h2>
         <hr size="1" />
-        <div className="d-flex mb-3 gap-2">
-          <div className="form-check ms-2">
-            <input
-              type="radio"
-              className="form-check-input"
-              name="role"
-              id="donarRadio"
-              value={"donar"}
-              onChange={(e) => setRole(e.target.value)}
-              defaultChecked
-            />
-            <label htmlFor="donarRadio" className="form-check-label">
-              Donar
-            </label>
-          </div>
-          <div className="form-check ms-2">
-            <input
-              type="radio"
-              className="form-check-input"
-              name="role"
-              id="adminRadio"
-              value={"admin"}
-              onChange={(e) => setRole(e.target.value)}
-            />
-            <label htmlFor="adminRadio" className="form-check-label">
-              Admin
-            </label>
-          </div>
-          <div className="form-check ms-2">
-            <input
-              type="radio"
-              className="form-check-input"
-              name="role"
-              id="hospitalRadio"
-              value={"hospital"}
-              onChange={(e) => setRole(e.target.value)}
-            />
-            <label htmlFor="hospitalRadio" className="form-check-label">
-              Hospital
-            </label>
-          </div>
-          <div className="form-check ms-2">
-            <input
-              type="radio"
-              className="form-check-input"
-              name="role"
-              id="organisationRadio"
-              value={"organisation"}
-              onChange={(e) => setRole(e.target.value)}
-            />
-            <label htmlFor="organisationRadio" className="form-check-label">
-              Organisation
-            </label>
-          </div>
+        <div className="d-flex flex-wrap mb-3 gap-2">
+          {[
+            { value: 'donar', label: 'Donor', id: 'donarRadio', defaultChecked: true },
+            { value: 'admin', label: 'Admin', id: 'adminRadio' },
+            { value: 'hospital', label: 'Hospital', id: 'hospitalRadio' },
+            { value: 'organisation', label: 'Organisation', id: 'organisationRadio' },
+          ].map(opt => (
+            <div key={opt.value} className="form-check" style={{
+              background: role === opt.value ? '#c0392b' : '#f1f3f5',
+              color: role === opt.value ? 'white' : '#333',
+              borderRadius: 20,
+              padding: '5px 14px',
+              cursor: 'pointer',
+              transition: 'all 0.15s'
+            }}>
+              <input
+                type="radio"
+                className="form-check-input"
+                name="role"
+                id={opt.id}
+                value={opt.value}
+                onChange={(e) => setRole(e.target.value)}
+                defaultChecked={opt.defaultChecked}
+                style={{ display: 'none' }}
+              />
+              <label htmlFor={opt.id} className="form-check-label mb-0"
+                style={{ cursor: 'pointer', fontWeight: 500, fontSize: 14 }}>
+                {opt.label}
+              </label>
+            </div>
+          ))}
         </div>
 
         {(() => {
@@ -197,8 +174,9 @@ const Form = ({ formType, submitBtn, formTitle }) => {
           }
         })()}
 
-        <div className="pt-1 mb-4 d-flex gap-4">
-          <button className="btn btn-info btn-lg btn-block" type="submit">
+        <div className="pt-1 mb-4 d-flex align-items-center gap-4">
+          <button className="btn btn-lg" type="submit"
+            style={{ background: '#c0392b', color: 'white', minWidth: 100, fontWeight: 600 }}>
             {submitBtn}
           </button>
           {formType === "login" ? (

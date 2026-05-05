@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useSelector } from 'react-redux';
-import Header from '../components/shared/Layout/Header';
+import Layout from '../components/shared/Layout/Layout';
 import API from '../services/API';
 import toast from 'react-hot-toast';
 
@@ -55,7 +55,6 @@ const BloodMap = () => {
           try {
             const { data } = await API.patch(`/requests/${reqId}/accept`);
             if (data?.success) {
-              const dc = data.donorContact;
               const rc = data.requesterContact;
               toast.success(`Accepted! Requester: ${rc.name || rc.hospitalName || ''} — ${rc.phone}`);
               map.closePopup();
@@ -135,8 +134,7 @@ const BloodMap = () => {
   }, [fetchMapData]);
 
   return (
-    <>
-      <Header />
+    <Layout>
       <div className="container-fluid px-4 mt-3">
         {/* Stats bar */}
         <div className="row g-2 mb-3">
@@ -192,7 +190,7 @@ const BloodMap = () => {
           {user?.role === 'donar' ? ' Click red markers to accept blood requests.' : ' Click markers for details.'}
         </p>
       </div>
-    </>
+    </Layout>
   );
 };
 
