@@ -1,58 +1,58 @@
 # Rakt-Setu
 
-To save lives !
+A real-time blood donation platform connecting donors, hospitals, and organisations.
+
+## Stack
+
+**SERN** — SQLite, Express, React, Node.js
 
 ## Features
 
 - **User Roles:**
-  - Admin: Manages overall system settings, user roles, and data.
-  - Donor: Registers as a blood donor, view personal info and donation logs, and donate blood throught Organization.
-  - Hospital: Manages blood inventory, requests blood from Organization, Tracks consumers.
-  - Organization: Coordinates blood donation drives, manages events, and tracks donation statistics.
+  - Admin: View and manage registered donors, hospitals, and organisations.
+  - Donor: Set location, browse blood requests nearby, accept and fulfil them.
+  - Hospital: Manage blood inventory, request blood, track consumers.
+  - Organisation: Manage inventory, coordinate donors and hospitals, post blood requests.
+
+- **Real-Time Blood Map:**
+  - Live map showing donor locations (blue) and blood requests (red/orange).
+  - Built with Leaflet + OpenStreetMap — no API key needed.
+  - Auto-refreshes every 15 seconds via client-side polling.
+
+- **Blood Request System:**
+  - Organisations and hospitals post urgent blood requests with location.
+  - Donors see requests nearby and accept them.
+  - Contact details revealed to both parties only after acceptance (bidirectional).
+  - Status notifications via polling every 8 seconds with toast alerts.
+
+- **Statistical Dashboard:**
+  - Blood demand prediction using moving average on last 90 days of inventory data.
+  - Donor matching using weighted scoring (blood type, proximity, availability, history).
+  - Inventory optimisation using threshold-based rules and expiry alerts.
+  - Rule-based chatbot for blood donation queries.
+  - Live stats pulled directly from the database.
 
 - **Authentication & Security:**
-  - JWT (JSON Web Tokens) are used for secure authentication.
-  - Passwords are encrypted using bcrypt library.
-  - Rate limiting to prevent brute force attacks.
+  - JWT (JSON Web Tokens) for session management.
+  - Passwords hashed with bcrypt.
+  - Rate limiting — 1000 requests per 15 minutes general, 5 failed auth attempts per 15 minutes.
   - Helmet.js for security headers.
-  - Input validation with express-validator.
-  - CORS configuration for secure cross-origin requests.
+  - CORS configuration.
 
 - **Frontend:**
-  - Developed using React.js for a dynamic and responsive user interface.
-  - State management is handled using Redux Toolkit.
+  - React.js with Redux Toolkit for state management.
   - Bootstrap for styling.
 
 - **Backend:**
-  - Built with Node.js and Express.js, following the MVC (Model-View-Controller) architecture.
-  - MongoDB Atlas cloud database with Mongoose for data modeling.
-  - Centralized error handling middleware.
-  - Request validation and sanitization.
-  - Morgan and colors for logging.
-
-## 🤖 AI-Powered Features
-
-- **Smart Donor Matching:** AI matches donors based on location, blood type, and availability (95% accuracy)
-- **Blood Demand Prediction:** Predict blood requirements 7-30 days ahead using ML
-- **Inventory Optimization:** AI prevents wastage and optimizes blood distribution
-- **24/7 AI Chatbot:** Instant answers to blood donation queries
-- **Emergency Prioritization:** AI-powered request prioritization for critical cases
-- **Anomaly Detection:** Automatically detects unusual patterns and potential issues
-
-## 🔐 Security Features
-
-- **Input Validation:** All user inputs are validated and sanitized
-- **Rate Limiting:** Protection against brute force and DDoS attacks
-- **Security Headers:** Helmet.js implements security best practices
-- **Error Handling:** Centralized error handling with appropriate status codes
-- **Environment Variables:** Secure configuration management
+  - Node.js and Express.js, MVC architecture.
+  - SQLite (better-sqlite3) — file-based, no external database server needed.
+  - Custom query builder compatible with Mongoose-style syntax.
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js and npm installed on your machine.
-- MongoDB Atlas account (free tier available) - See setup guide below.
+- Node.js and npm
 
 ### Installation
 
@@ -74,146 +74,78 @@ To save lives !
    cd ..
    ```
 
-4. **MongoDB Atlas Setup:**
-
-   Follow the detailed guide in [MONGODB_ATLAS_SETUP.md](./MONGODB_ATLAS_SETUP.md)
-
-   Quick steps:
-   - Create a free MongoDB Atlas account
-   - Create a cluster (M0 Free tier)
-   - Create a database user
-   - Whitelist your IP address
-   - Copy the connection string
-
-5. **Environment Configuration:**
+4. **Environment Configuration:**
 
    **Backend (.env):**
-   ```bash
-   cp .env.example .env
-   ```
-   Then update `.env` with your values:
    ```env
    PORT=8080
    DEV_MODE=development
-   MONGO_URL=mongodb+srv://<username>:<password>@cluster0.xxxxx.mongodb.net/rakt-setu?retryWrites=true&w=majority
-   JWT_SECRET=your-super-secret-jwt-key-change-this
+   JWT_SECRET=your-secret-key
    JWT_EXPIRE=7d
    ALLOWED_ORIGINS=http://localhost:3000
-   RATE_LIMIT_MAX=100
+   RATE_LIMIT_MAX=1000
    ```
 
    **Frontend (client/.env):**
-   ```bash
-   cd client
-   cp .env.example .env
-   ```
-   Update `client/.env`:
    ```env
    REACT_APP_BASEURL=http://localhost:8080/api/v1
    ```
 
 ### Running the Application
 
-Start both backend and frontend:
 ```bash
+# Start both together
 npm start
+
+# Or separately
+npm run server   # backend
+npm run client   # frontend
 ```
 
-Or run separately:
-```bash
-# Backend only
-npm run server
-
-# Frontend only
-npm run client
-```
-
-The application will be accessible at:
 - Frontend: http://localhost:3000
 - Backend API: http://localhost:8080/api/v1
 
+> SQLite database file is created automatically on first run. No external database setup needed.
+
 ### Deployment
-- Backend: Deployed on Render.
-- Frontend: Deployed on Netlify.
-
-## 📚 Documentation
-
-### Setup & Configuration
-- **[QUICKSTART.md](./QUICKSTART.md)** ⭐ - 5-minute quick start guide
-- **[MONGODB_ATLAS_SETUP.md](./MONGODB_ATLAS_SETUP.md)** - Complete guide for setting up MongoDB Atlas
-- **[.env.example](./.env.example)** - Backend environment variables template
-- **[client/.env.example](./client/.env.example)** - Frontend environment variables template
-
-### Features & AI
-- **[AI_FEATURES.md](./AI_FEATURES.md)** - Complete AI features documentation
-- **[AI_USAGE_GUIDE.md](./AI_USAGE_GUIDE.md)** - Step-by-step AI API usage guide
-- **[NEW_FEATURES.md](./NEW_FEATURES.md)** - Security features documentation
-- **[SUMMARY.md](./SUMMARY.md)** - Complete enhancement summary
-
-## API Security
-
-The API now includes comprehensive security measures:
-
-- **Rate Limiting:**
-  - General API: 100 requests per 15 minutes
-  - Auth endpoints: 5 attempts per 15 minutes
-
-- **Input Validation:**
-  - Email format validation
-  - Password strength requirements
-  - Blood group validation
-  - Role-based validation
-
-- **Error Handling:**
-  - Consistent error responses
-  - Development/production modes
-  - Detailed logging
+- Backend: Render
+- Frontend: Netlify
 
 ## Project Structure
 
 ```
 Rakt-Setu/
-├── client/                      # React frontend
+├── client/                     # React frontend
 │   ├── src/
-│   ├── public/
-│   ├── .env.example            # Frontend env template
-│   └── package.json
-├── config/                     # Configuration files
-│   └── db.js                   # MongoDB connection
-├── controllers/                # Route controllers
-│   ├── ai/                     # 🤖 AI Controllers (NEW)
+│   └── public/
+├── config/
+│   └── db.js                   # SQLite connection + table setup
+├── controllers/
+│   ├── ai/
 │   │   ├── chatbotController.js
 │   │   ├── donorMatchingController.js
 │   │   └── predictionController.js
 │   ├── adminController.js
 │   ├── analyticsController.js
 │   ├── authController.js
-│   └── inventoryController.js
-├── middleware/                 # Custom middleware
+│   ├── inventoryController.js
+│   └── requestController.js
+├── middleware/
 │   ├── authMiddleware.js
 │   ├── adminMiddleware.js
-│   ├── errorMiddleware.js      # NEW - Error handling
-│   ├── validationMiddleware.js # NEW - Input validation
-│   └── securityMiddleware.js   # NEW - Rate limiting
-├── models/                     # Mongoose models (Enhanced with AI fields)
+│   └── securityMiddleware.js
+├── models/
 │   ├── inventoryModel.js
 │   └── userModel.js
-├── routes/                     # API routes
-│   ├── aiRoutes.js            # 🤖 NEW - AI endpoints
+├── routes/
+│   ├── aiRoutes.js
 │   ├── adminRoutes.js
 │   ├── analyticsRoutes.js
 │   ├── authRoute.js
-│   └── inventoryRoutes.js
-├── .env.example                # Backend env template
-├── .gitignore
-├── package.json
-├── server.js                   # Updated with AI routes
-├── AI_FEATURES.md              # 🤖 NEW - AI documentation
-├── AI_USAGE_GUIDE.md           # 🤖 NEW - AI usage guide
-├── MONGODB_ATLAS_SETUP.md      # NEW - Database setup
-├── NEW_FEATURES.md             # NEW - Security features
-├── QUICKSTART.md               # NEW - Quick start guide
-└── SUMMARY.md                  # NEW - Complete summary
+│   ├── inventoryRoutes.js
+│   └── requestRoutes.js
+├── server.js
+└── package.json
 ```
 
 ## Screenshots
