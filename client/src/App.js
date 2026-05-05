@@ -95,7 +95,7 @@ function App() {
               <OrganisationPage/>
             </ProtectedRoute>
         } />
-        <Route path="/ai-dashboard" element={
+        <Route path="/statistical-dashboard" element={
             <ProtectedRoute>
               <AIDashboard/>
             </ProtectedRoute>

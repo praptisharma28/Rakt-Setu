@@ -94,10 +94,10 @@ const AIDashboard = () => {
         <div className="d-flex align-items-center mb-3">
           <h2 className="mb-0">
             <i className="fa-solid fa-chart-line" style={{ color: "#764ba2", marginRight: "10px" }}></i>
-            Analytics &amp; Intelligence Dashboard
+            Statistical Analytics Dashboard
           </h2>
           <span className="badge ms-3" style={{ background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)", fontSize: "12px", padding: "6px 12px" }}>
-            Statistical AI
+            Statistical Analysis
           </span>
         </div>
 
@@ -281,7 +281,7 @@ const AIDashboard = () => {
                   <div className="p-3 rounded-3 bg-light h-100">
                     <h6 className="text-muted mb-3">
                       <i className="fa-solid fa-lightbulb me-1 text-warning"></i>
-                      AI Recommendation
+                      Statistical Recommendation
                     </h6>
                     <p style={{ fontSize: "14px", lineHeight: 1.6 }}>
                       {predictions.prediction.recommendation}
@@ -310,7 +310,7 @@ const AIDashboard = () => {
                   <>
                     <i className="fa-solid fa-chart-line mb-3" style={{ fontSize: "48px", color: "#667eea" }}></i>
                     <h5 className="text-muted">Select blood type and forecast period</h5>
-                    <p className="text-muted">Click <strong>Predict</strong> to generate AI forecast</p>
+                    <p className="text-muted">Click <strong>Predict</strong> to generate statistical forecast</p>
                   </>
                 )}
               </div>
@@ -458,7 +458,7 @@ const AIDashboard = () => {
                         }}
                       >
                         <i className="fa-solid fa-robot me-1 text-primary"></i>
-                        <strong>AI:</strong>{" "}
+                        <strong>Insight:</strong>{" "}
                         {matchResults.aiInsights.recommendation}
                       </div>
                     )}
@@ -674,7 +674,7 @@ const AIDashboard = () => {
           }}
         >
           <i className="fa-solid fa-shield-halved me-1"></i>
-          Predictions use <strong>Moving Average &amp; Trend Analysis</strong> on real DB data. Donor matching uses a <strong>multi-factor scoring algorithm</strong> (proximity · blood compatibility · availability · history). All stats above reflect live database values.
+          Predictions use <strong>Moving Average &amp; Trend Analysis</strong> on real DB data. Donor matching uses a <strong>multi-factor scoring algorithm</strong> (proximity · blood compatibility · availability · history). All stats reflect live database values.
           Use the <strong>chat button</strong> (bottom-right) for the Blood Donation Assistant.
         </div>
       </div>

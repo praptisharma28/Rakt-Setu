@@ -35,8 +35,8 @@ export const userMenu = [
         icon: "fa-solid fa-chart-bar"
     },
     {
-        name: "AI Dashboard",
-        path:"/ai-dashboard",
+        name: "Statistical Dashboard",
+        path:"/statistical-dashboard",
         icon: "fa-solid fa-brain"
     },
 ]

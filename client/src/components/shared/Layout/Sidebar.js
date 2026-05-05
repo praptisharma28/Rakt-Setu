@@ -123,14 +123,14 @@ const Sidebar = () => {
             </div>
           )}
 
-          {/* AI Dashboard - visible to all roles */}
+          {/* Statistical Dashboard - visible to all roles */}
           <div
             className={`menu-item ${
-              location.pathname === "/ai-dashboard" && "active"
+              location.pathname === "/statistical-dashboard" && "active"
             }`}
           >
             <i className="fa-solid fa-brain"></i>
-            <Link to="/ai-dashboard">AI Dashboard</Link>
+            <Link to="/statistical-dashboard">Statistical Dashboard</Link>
           </div>
 
           {user?.role === "hospital" && (
